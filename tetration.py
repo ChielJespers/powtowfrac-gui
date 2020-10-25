@@ -27,7 +27,7 @@ def tetr_execute(sRe, sIm, sEpsilon, sMaxiter):
     start = time.time()
 
     # Input variables
-    sharpness = 4000
+    sharpness = 750
 
     re = float(sRe)
     im = float(sIm)

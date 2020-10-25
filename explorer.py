@@ -137,6 +137,27 @@ def exit_menu(menu):
 
     Gtk.main_quit()
 
+def zoom_coords(box, event):
+    print 'clicked on X=', event.x, ' Y= ', event.y
+
+    epsilon = builder.get_object('epsilon')
+    realpart = builder.get_object('realpart')
+    imaginarypart = builder.get_object('imaginarypart')
+
+    eps = float(epsilon.get_text())
+    re = float(realpart.get_text())
+    im = float(imaginarypart.get_text())
+
+    new_eps = eps * .7
+    new_re = re + ((event.x - 375) / 750) * eps
+    new_im = im - ((event.y - 375) / 750) * eps
+
+    realpart.set_text(str(new_re))
+    imaginarypart.set_text(str(new_im))
+    epsilon.set_text(str(new_eps))
+
+    refresh()
+
 handlers = {
     'on_exec-button_clicked': execute,
     'on_zoomin-button_clicked': zoomin,
@@ -149,6 +170,7 @@ handlers = {
     'on_realpart_changed': update_real,
     'on_imaginarypart_changed': update_imaginary,
     'on_epsilon_changed': update_epsilon,
+    'on_plot-container-box_button_press_event': zoom_coords,
 }
 builder.connect_signals(handlers)
 
