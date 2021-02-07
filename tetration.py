@@ -23,11 +23,11 @@ def cuda_tetration(sharpness, centerRe, centerIm, epsilon, maxIter, res, N, tetr
 def linear_interpolation(color1, color2, t):
     return color1 * (1 - t) + color2 * t 
 
-def tetr_execute(sRe, sIm, sEpsilon, sMaxiter):
+def tetr_execute(sRe, sIm, sEpsilon, sMaxiter, sSharpness, filename):
     start = time.time()
 
     # Input variables
-    sharpness = 750
+    sharpness = int(sSharpness)
 
     re = float(sRe)
     im = float(sIm)
@@ -56,7 +56,7 @@ def tetr_execute(sRe, sIm, sEpsilon, sMaxiter):
     print "Time elapsed:", elapsed
 
     # Put results in picture
-    print("Start creating image output.png")
+    print("Start creating image " + filename)
     pic = Image.new('HSV', (pngWidth, pngHeight), (0, 0, 0))
     draw = ImageDraw.Draw(pic)
 
@@ -96,7 +96,7 @@ def tetr_execute(sRe, sIm, sEpsilon, sMaxiter):
         color = palette[shade] if it[T] < maxIter else black
         draw.point([x,y], color)
 
-    pic.convert('RGB').save('output.png', 'PNG')
+    pic.convert('RGB').save(filename, 'PNG')
 
     elapsed = time.time() - start
     print "Time elapsed:", elapsed

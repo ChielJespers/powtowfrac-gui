@@ -232,6 +232,27 @@
           </packing>
         </child>
         <child>
+          <object class="GtkEntry" id="sharpness">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+          </object>
+          <packing>
+            <property name="x">520</property>
+            <property name="y">855</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkLabel" id="sharpness-label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="label" translatable="yes">sharpness</property>
+          </object>
+          <packing>
+            <property name="x">520</property>
+            <property name="y">838</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkButton" id="zoomout-button">
             <property name="width_request">50</property>
             <property name="height_request">50</property>

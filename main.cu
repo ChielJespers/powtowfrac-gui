@@ -9,6 +9,8 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
+#include <search.h>
+
 // ------------------------
 // TO BE CUSTOMIZED BY USER
 // ------------------------
@@ -17,6 +19,9 @@
 
 // See the bottom of this code for a discussion of some output possibilities.
 char*   filenameF =   "output.txt";
+
+
+#define BASE 1
 
 __device__
 double slog(double in) {
@@ -51,14 +56,24 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
   else {
     logRe = .5*log(re*re + im*im);
     logIm = atan2(im, re);
-    nextRe = re;
-    nextIm = im;
+
+    // Do one iteration with the base number in the exponent
+    powerRe = logRe * BASE;
+    powerIm = logIm * BASE;
+
+    nextRe = exp(powerRe) * cos(powerIm);
+    nextIm = exp(powerRe) * sin(powerIm);
+
+    // if (powerRe > 700) {
+    //   toggleOverflow = 1;
+    // }
+
     while (numberOfIterations < maxIter && toggleOverflow == 0)
     {
         powerRe = (nextRe * logRe - nextIm * logIm);
         powerIm = (nextRe * logIm + nextIm * logRe);
 
-        if (powerRe > 10) {
+        if (powerRe > 700) {
             toggleOverflow = 1;
         }
 

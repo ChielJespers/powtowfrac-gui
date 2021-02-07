@@ -100,13 +100,15 @@ def refresh():
     imaginarypart = builder.get_object('imaginarypart')
     epsilon = builder.get_object('epsilon')
     maxiter = builder.get_object('maxiter')
+    sharpness = builder.get_object('sharpness')
 
     re = realpart.get_text()
     im = imaginarypart.get_text()
     eps = epsilon.get_text()
     maxiter = maxiter.get_text()
+    sharpness = sharpness.get_text()
 
-    tetr_execute(re, im, eps, maxiter)
+    tetr_execute(re, im, eps, maxiter, sharpness, 'output.png')
 
     os.system('convert output.png -resize 750x750 output.png')
     #subprocess.Popen(['convert', 'output.png', '-resize', '750x750', 'output.png'])
@@ -123,16 +125,21 @@ def update_imaginary(entry):
 def update_epsilon(entry):
     pass
 
+def update_sharpness(entry):
+    pass
+
 def exit_menu(menu):
     re = builder.get_object('realpart').get_text()
     im = builder.get_object('imaginarypart').get_text()
     eps = builder.get_object('epsilon').get_text()
     maxiter = builder.get_object('maxiter').get_text()
+    sharpness = builder.get_object('sharpness').get_text()
 
     with open('session.txt', 'w') as f:
         f.write(re + '\n')
         f.write(im + '\n')
         f.write(eps + '\n')
+        f.write(sharpness + '\n')
         f.write(maxiter + '\n')
 
     Gtk.main_quit()
@@ -170,6 +177,7 @@ handlers = {
     'on_realpart_changed': update_real,
     'on_imaginarypart_changed': update_imaginary,
     'on_epsilon_changed': update_epsilon,
+    'on_sharpness_changed': update_sharpness,
     'on_plot-container-box_button_press_event': zoom_coords,
 }
 builder.connect_signals(handlers)
@@ -185,12 +193,14 @@ if os.path.isfile('session.txt'):
         realpart = builder.get_object('realpart')
         imaginarypart = builder.get_object('imaginarypart')
         epsilon = builder.get_object('epsilon')
+        sharpness = builder.get_object('sharpness')
         maxiter = builder.get_object('maxiter')
 
         realpart.set_text(content[0])
         imaginarypart.set_text(content[1])
         epsilon.set_text(content[2])
-        maxiter.set_text(content[3])
+        sharpness.set_text(content[3])
+        maxiter.set_text(content[4])
 
 window.show_all()
 
