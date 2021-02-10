@@ -73,27 +73,28 @@ def tetr_execute(sRe, sIm, sEpsilon, sMaxiter, sSharpness, filename):
     it = res
 
     # Create histogram of colors
-    for T in xrange(N):
-        if it[T] < maxIter:
-            histogram[int(it[T])] += 1
+    # for T in xrange(N):
+    #     if it[T] < maxIter:
+    #         histogram[int(it[T])] += 1
 
-    total = sum(histogram.values())
-    hues = []
-    h = 0
-    for i in range(maxIter):
-        h += (255 * histogram[i])
-        hues.append(h)
-    hues.append(h)
+    # total = sum(histogram.values())
+    # hues = []
+    # h = 0
+    # for i in xrange(maxIter):
+    #     h += (255 * histogram[i])
+    #     hues.append(h)
+    # hues.append(h)
 
-    if total > 0:
-        hues = [hue / total for hue in hues]
+    # if total > 0:
+    #     hues = [hue / total for hue in hues]
 
     # Draw to image
+    #print list(res)
     for T in xrange(N):
         x = T % pngHeight
         y = T / pngHeight
-        shade = int(linear_interpolation(hues[int(floor(it[T]))], hues[int(ceil(it[T]))], it[T] % 1))
-        color = palette[shade] if it[T] < maxIter else black
+        # shade = int(linear_interpolation(hues[int(floor(it[T]))], hues[int(ceil(it[T]))], it[T] % 1))
+        color = palette[int(res[T])] if res[T] > 0 else black
         draw.point([x,y], color)
 
     pic.convert('RGB').save(filename, 'PNG')

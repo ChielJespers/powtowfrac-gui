@@ -9,8 +9,8 @@ centerIm = 0.0823985635523
 N = 300
 
 # Zooming should be done by multiplying with a constant. The constant is based on the number of frames
-# To not make the ending as "sudden" the last 20% of the way takes twice as long.
-# Of this 80% of the zoom is done when the vid would have normally ended
+# To not make the ending as "sudden", the last 20% of the way is extended to two parts of equal length.
+# Of this 80% of the zoom is done in the first part, 20% in the second part.
 
 zoom_factor = (log(epsilonN) - log(epsilon1)) / float(N)
 start = log(epsilon1)

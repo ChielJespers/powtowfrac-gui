@@ -9,8 +9,6 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
-#include <search.h>
-
 // ------------------------
 // TO BE CUSTOMIZED BY USER
 // ------------------------
@@ -92,6 +90,10 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
   }
 }
 
+double linear_interpolation(double color1, double color2, double t) {
+  return color1 * (1 - t) + color2 * t;
+}
+
 extern "C" {
 double *create_frame(int sharpness, double centerRe, double centerIm, double epsilon, int maxIter, double *res) {
   FILE*       outfile;                      // defined in stdio
@@ -111,7 +113,8 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   int N = pngWidth * pngHeight;
 
   res = (double*) malloc(N*sizeof(double));
-  double* d_color;
+  double *color = (double*) malloc(N*sizeof(double));
+  double *d_color;
 
   printf("width: %i\n", pngWidth);
   printf("height: %i\n", pngHeight);
@@ -148,10 +151,43 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   cudaEventSynchronize(stop);
   cudaDeviceSynchronize();
 
-  cudaMemcpy(res, d_color, N*sizeof(double), cudaMemcpyDeviceToHost);
+  cudaMemcpy(color, d_color, N*sizeof(double), cudaMemcpyDeviceToHost);
+
+  // Create lookup table of hues
+  int *hues = (int*) calloc((maxIter + 1), sizeof(int));
+  for (int T = 0; T < N; T++) {
+    if (color[T] < maxIter) {
+      int index = (int) color[T];
+      hues[(int) color[T]]++;
+    }
+  }
+
+  int total = 0;
+  for (int i = 0; i < maxIter; i++) {
+    total += hues[i];
+  }
+
+  hues[0] *= 255;
+  for (int i = 1; i < maxIter; i++) {
+    hues[i] = hues[i - 1] + 255 * hues[i];
+  }
+  hues[maxIter] = -1;
+
+  if (total > 0) {
+    for (int i = 0; i < maxIter; i++) {
+      hues[i] /= total;
+    }
+  }
+
+  // Now create the result array consisting of the actual colors
+  for (int T = 0; T < N; T++) {
+    res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
+  }
 
   // Free 2D array
   cudaFree(d_color);
+  free(hues);
+  free(color);
 
   printf("Calculation done.\n");
 
