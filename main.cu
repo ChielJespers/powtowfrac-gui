@@ -16,9 +16,6 @@
 // ------------------------
 
 // See the bottom of this code for a discussion of some output possibilities.
-char*   filenameF =   "output.txt";
-
-
 #define BASE 1
 
 __device__
@@ -90,15 +87,113 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
   }
 }
 
+typedef struct RgbColor
+{
+  unsigned char r;
+  unsigned char g;
+  unsigned char b;
+} RgbColor;
+
+typedef struct HsvColor
+{
+  unsigned char h;
+  unsigned char s;
+  unsigned char v;
+} HsvColor;
+
+RgbColor HsvToRgb(HsvColor hsv)
+{
+  RgbColor rgb;
+  unsigned char region, remainder, p, q, t;
+
+  if (hsv.s == 0)
+  {
+    rgb.r = hsv.v;
+    rgb.g = hsv.v;
+    rgb.b = hsv.v;
+    return rgb;
+  }
+
+  region = hsv.h / 43;
+  remainder = (hsv.h - (region * 43)) * 6; 
+
+  p = (hsv.v * (255 - hsv.s)) >> 8;
+  q = (hsv.v * (255 - ((hsv.s * remainder) >> 8))) >> 8;
+  t = (hsv.v * (255 - ((hsv.s * (255 - remainder)) >> 8))) >> 8;
+
+  switch (region)
+  {
+    case 0:
+      rgb.r = hsv.v; rgb.g = t; rgb.b = p;
+      break;
+    case 1:
+      rgb.r = q; rgb.g = hsv.v; rgb.b = p;
+      break;
+    case 2:
+      rgb.r = p; rgb.g = hsv.v; rgb.b = t;
+      break;
+    case 3:
+      rgb.r = p; rgb.g = q; rgb.b = hsv.v;
+      break;
+    case 4:
+      rgb.r = t; rgb.g = p; rgb.b = hsv.v;
+      break;
+    default:
+      rgb.r = hsv.v; rgb.g = p; rgb.b = q;
+      break;
+  }
+
+  return rgb;
+}
+
+HsvColor RgbToHsv(RgbColor rgb)
+{
+  HsvColor hsv;
+  unsigned char rgbMin, rgbMax;
+
+  rgbMin = rgb.r < rgb.g ? (rgb.r < rgb.b ? rgb.r : rgb.b) : (rgb.g < rgb.b ? rgb.g : rgb.b);
+  rgbMax = rgb.r > rgb.g ? (rgb.r > rgb.b ? rgb.r : rgb.b) : (rgb.g > rgb.b ? rgb.g : rgb.b);
+
+  hsv.v = rgbMax;
+  if (hsv.v == 0)
+  {
+    hsv.h = 0;
+    hsv.s = 0;
+    return hsv;
+  }
+
+  hsv.s = 255 * long(rgbMax - rgbMin) / hsv.v;
+  if (hsv.s == 0)
+  {
+    hsv.h = 0;
+    return hsv;
+  }
+
+  if (rgbMax == rgb.r)
+    hsv.h = 0 + 43 * (rgb.g - rgb.b) / (rgbMax - rgbMin);
+  else if (rgbMax == rgb.g)
+    hsv.h = 85 + 43 * (rgb.b - rgb.r) / (rgbMax - rgbMin);
+  else
+    hsv.h = 171 + 43 * (rgb.r - rgb.g) / (rgbMax - rgbMin);
+
+  return hsv;
+}
+
 double linear_interpolation(double color1, double color2, double t) {
   return color1 * (1 - t) + color2 * t;
 }
 
+char*   filenameF =   "output.png";
+
 extern "C" {
 double *create_frame(int sharpness, double centerRe, double centerIm, double epsilon, int maxIter, double *res) {
   FILE*       outfile;                      // defined in stdio
-  int         T;                            // array subscripts
-  
+  int         T, i, x, y;                   // array subscripts
+  gdImagePtr  image;                        // a GD image object
+  char        filename[80];
+  int         black, palette[256];          // red, all possible shades of palette
+  HsvColor    col_hsv;
+  RgbColor    col_rgb;
 
   double reStart = centerRe - epsilon;
   double reEnd = centerRe + epsilon;
@@ -120,6 +215,20 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   printf("height: %i\n", pngHeight);
 
   cudaMalloc(&d_color, N*sizeof(double));
+
+  image = gdImageCreate(pngWidth, pngHeight);
+
+  black = gdImageColorAllocate(image, 0, 0, 0);
+
+  for (i=0; i<255; i++){
+    col_hsv.h = i;
+    col_hsv.s = 255;
+    col_hsv.v = (i == 255 ? 0 : 255);
+    col_rgb = HsvToRgb(col_hsv);
+    palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
+  }
+
+  palette[255] = gdImageColorAllocate(image, 0, 0, 0);
 
   //Progress variables
   volatile int *d_data, *h_data;
@@ -182,14 +291,19 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   // Now create the result array consisting of the actual colors
   for (int T = 0; T < N; T++) {
     res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
+    x = T % pngHeight;
+    y = T / pngHeight;
+    gdImageSetPixel(image, x, y, res[T] > 0 ? res[T] : black);
   }
 
   // Free 2D array
   cudaFree(d_color);
   free(hues);
   free(color);
-
-  printf("Calculation done.\n");
+  printf("Creating output file '%s'.\n", filenameF);
+  outfile = fopen(filenameF, "wb");
+  gdImagePng(image, outfile);
+  fclose(outfile);
 
   return res;
 }
