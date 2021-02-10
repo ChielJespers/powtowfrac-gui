@@ -300,7 +300,7 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   cudaFree(d_color);
   free(hues);
   free(color);
-  printf("Creating output file '%s'.\n", filenameF);
+  // printf("Creating output file '%s'.\n", filenameF);
   outfile = fopen(filenameF, "wb");
   gdImagePng(image, outfile);
   fclose(outfile);

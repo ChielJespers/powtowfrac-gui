@@ -5,6 +5,7 @@ from math import floor, ceil
 import numpy as np
 import ctypes
 import time
+import os
 from ctypes import *
 from numpy.ctypeslib import ndpointer
 
@@ -54,3 +55,7 @@ def tetr_execute(sRe, sIm, sEpsilon, sMaxiter, sSharpness, filename):
     elapsed = time.time() - start
     start = time.time()
     print "Time elapsed:", elapsed
+
+    # Move output file to desired location
+    print("Start creating image " + filename)
+    os.rename("output.png", filename)
