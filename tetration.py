@@ -58,4 +58,4 @@ def tetr_execute(sRe, sIm, sEpsilon, sMaxiter, sSharpness, filename):
 
     # Move output file to desired location
     print("Start creating image " + filename)
-    os.rename("output.png", filename)
+    os.rename("preview.png", filename)

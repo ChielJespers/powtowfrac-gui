@@ -41,7 +41,10 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
   double re = reStart + ((double) x / W * (reEnd - reStart));
   double im = imEnd - ((double) y / H * (imEnd - imStart));
 
-  double nextRe, nextIm, logRe, logIm, powerRe, powerIm;
+  double nextRe, nextIm, qRe, qIm;
+
+  nextRe = 0;
+  nextIm = 0;
 
   int toggleOverflow = 0;                                          
   int numberOfIterations = 0;                                      
@@ -49,37 +52,27 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
     color[T] = maxIter;
   }
   else {
-    logRe = .5*log(re*re + im*im);
-    logIm = atan2(im, re);
+    while (numberOfIterations < maxIter && nextRe * nextRe + nextIm * nextIm <= 4) {
+        qRe = nextRe * nextRe - nextIm * nextIm;
+        qIm = 2 * nextRe * nextIm;
+    
+        nextRe = qRe + re;
+        nextIm = qIm + im;
 
-    // Do one iteration with the base number in the exponent
-    powerRe = logRe * BASE;
-    powerIm = logIm * BASE;
-
-    nextRe = exp(powerRe) * cos(powerIm);
-    nextIm = exp(powerRe) * sin(powerIm);
-
-    // if (powerRe > 700) {
-    //   toggleOverflow = 1;
-    // }
-
-    while (numberOfIterations < maxIter && toggleOverflow == 0)
-    {
-        powerRe = (nextRe * logRe - nextIm * logIm);
-        powerIm = (nextRe * logIm + nextIm * logRe);
-
-        if (powerRe > 700) {
-            toggleOverflow = 1;
-        }
-
-        nextRe = exp(powerRe) * cos(powerIm);
-        nextIm = exp(powerRe) * sin(powerIm);
-        
         numberOfIterations += 1;
-    }
+    } 
   }
 
-  double it = numberOfIterations == maxIter ? maxIter : numberOfIterations + 1 - slog(powerRe);
+  double abs = sqrt(nextRe * nextRe + nextIm * nextIm);
+  double it;
+  if (abs > 2) {
+    it = numberOfIterations == maxIter ? maxIter : numberOfIterations + 1 - log(log2(abs));
+  }
+  else 
+  {
+    it = numberOfIterations;
+  }
+
   color[T] = it;
   if (!(threadIdx.x || threadIdx.y)){
     atomicAdd((int *)progress, 1);
@@ -261,9 +254,9 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   cudaDeviceSynchronize();
 
   cudaMemcpy(color, d_color, N*sizeof(double), cudaMemcpyDeviceToHost);
-
+  
   // Create lookup table of hues
-  int *hues = (int*) calloc((maxIter + 1), sizeof(int));
+  long long *hues = (long long*) calloc((maxIter + 1), sizeof(long long));
   for (int T = 0; T < N; T++) {
     if (color[T] < maxIter) {
       int index = (int) color[T];

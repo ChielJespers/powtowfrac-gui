@@ -9,7 +9,7 @@ centerIm = 0.0823985635523
 N = 300
 
 # Zooming should be done by multiplying with a constant. The constant is based on the number of frames
-# To not make the ending as "sudden", the last 20% of the way is extended to two parts of equal length.
+# To not make the ending as "sudden", the last 20% of the way is extended to two parts each of length 20%.
 # Of this 80% of the zoom is done in the first part, 20% in the second part.
 
 zoom_factor = (log(epsilonN) - log(epsilon1)) / float(N)
