@@ -17,6 +17,7 @@
 
 // See the bottom of this code for a discussion of some output possibilities.
 #define BASE 1
+#define PI 3.14159265359
 
 __device__
 double slog(double in) {
@@ -79,7 +80,7 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
     }
   }
 
-  double it = numberOfIterations == maxIter ? maxIter : numberOfIterations + 1 - slog(powerRe);
+  double it = numberOfIterations == maxIter ? maxIter : numberOfIterations/* + 1 - slog(powerRe)*/;
   color[T] = it;
   if (!(threadIdx.x || threadIdx.y)){
     atomicAdd((int *)progress, 1);
@@ -218,17 +219,18 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
 
   image = gdImageCreate(pngWidth, pngHeight);
 
-  black = gdImageColorAllocate(image, 0, 0, 0);
+  black = gdImageColorAllocate(image, 255, 255, 255);
 
   for (i=0; i<255; i++){
-    col_hsv.h = i;
-    col_hsv.s = 255;
-    col_hsv.v = (i == 255 ? 0 : 255);
-    col_rgb = HsvToRgb(col_hsv);
-    palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
+    // col_hsv.h = i;
+    // col_hsv.s = 255;
+    // col_hsv.v = (i == 255 ? 0 : 255);
+    // col_rgb = HsvToRgb(col_hsv);
+    // palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
+    palette[i] = gdImageColorAllocate(image, 0, 0, 0);
   }
 
-  palette[255] = gdImageColorAllocate(image, 0, 0, 0);
+  palette[255] = gdImageColorAllocate(image, 255, 255, 255);
 
   //Progress variables
   volatile int *d_data, *h_data;
@@ -290,10 +292,11 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
 
   // Now create the result array consisting of the actual colors
   for (int T = 0; T < N; T++) {
-    res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
+    res[T] = hues[(int) color[T]];
+    // res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
     x = T % pngHeight;
     y = T / pngHeight;
-    gdImageSetPixel(image, x, y, res[T] > 0 ? res[T] : black);
+    gdImageSetPixel(image, x, y, color[T] < maxIter ? palette[0] : black);
   }
 
   // Free 2D array
