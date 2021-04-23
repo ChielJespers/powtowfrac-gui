@@ -310,12 +310,10 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
 
   // Now create the result array consisting of the actual colors
   for (int T = 0; T < N; T++) {
-    res[T] = hues[(int) color[T]];
-    // res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
+    res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
     x = T % pngHeight;
     y = T / pngHeight;
-    gdImageSetPixel(image, x, y, color[T] < maxIter ? palette[0] : black);
-  }
+    gdImageSetPixel(image, x, y, res[T] > 0 ? res[T] : black);  }
 
   // Free 2D array
   cudaFree(d_color);
