@@ -101,14 +101,16 @@ def refresh():
     epsilon = builder.get_object('epsilon')
     maxiter = builder.get_object('maxiter')
     sharpness = builder.get_object('sharpness')
+    greyscale = builder.get_object('greyscale')
 
     re = realpart.get_text()
     im = imaginarypart.get_text()
     eps = epsilon.get_text()
     maxiter = maxiter.get_text()
     sharpness = sharpness.get_text()
+    greyscale = greyscale.get_active()
 
-    tetr_execute(re, im, eps, maxiter, sharpness, 'output.png')
+    tetr_execute(re, im, eps, maxiter, sharpness, greyscale, 'output.png')
 
     os.system('convert output.png -resize 750x750 output.png')
     #subprocess.Popen(['convert', 'output.png', '-resize', '750x750', 'output.png'])
@@ -165,6 +167,9 @@ def zoom_coords(box, event):
 
     refresh()
 
+def toggle_greyscale(checkbox):
+    pass
+
 handlers = {
     'on_exec-button_clicked': execute,
     'on_zoomin-button_clicked': zoomin,
@@ -179,6 +184,7 @@ handlers = {
     'on_epsilon_changed': update_epsilon,
     'on_sharpness_changed': update_sharpness,
     'on_plot-container-box_button_press_event': zoom_coords,
+    'on_greyscale-checkbox_toggled': toggle_greyscale,
 }
 builder.connect_signals(handlers)
 

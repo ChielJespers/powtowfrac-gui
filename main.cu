@@ -31,7 +31,7 @@ double slog(double in) {
 }
 
 __global__
-void fillColor(int n, int H, int W, double* color, double reStart, double reEnd, double imStart, double imEnd, int maxIter, volatile int *progress) {
+void fillColor(int n, int H, int W, double* color, double reStart, double reEnd, double imStart, double imEnd, int maxIter, volatile int *progress, bool greyscale) {
 
   int T = blockIdx.x*blockDim.x + threadIdx.x;
   if (T >= n) return;
@@ -79,7 +79,8 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
     }
   }
 
-  double it = numberOfIterations == maxIter ? maxIter : numberOfIterations + 1 - slog(powerRe);
+  double smoothening_factor = greyscale ? 0 : 1 - slog(powerRe);
+  double it = numberOfIterations == maxIter ? maxIter : numberOfIterations + smoothening_factor;
   color[T] = it;
   if (!(threadIdx.x || threadIdx.y)){
     atomicAdd((int *)progress, 1);
@@ -185,15 +186,41 @@ double linear_interpolation(double color1, double color2, double t) {
 
 char*   filenameF =   "preview.png";
 
+void set_palette(gdImagePtr image, int *palette, int *black, bool greyscale) {
+  HsvColor    col_hsv;
+  RgbColor    col_rgb;
+  
+  if (!greyscale) {
+    *black = gdImageColorAllocate(image, 0, 0, 0);
+
+    for (int i=0; i<255; i++){
+      col_hsv.h = i;
+      col_hsv.s = 255;
+      col_hsv.v = (i == 255 ? 0 : 255);
+      col_rgb = HsvToRgb(col_hsv);
+      palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
+    }
+  
+    palette[255] = gdImageColorAllocate(image, 0, 0, 0);
+  }
+  else {
+    *black = gdImageColorAllocate(image, 255, 255, 255);
+
+    for (int i=0; i<255; i++){
+      palette[i] = gdImageColorAllocate(image, 0, 0, 0);
+    }
+  
+    palette[255] = gdImageColorAllocate(image, 255, 255, 255);
+  }
+}
+
 extern "C" {
-double *create_frame(int sharpness, double centerRe, double centerIm, double epsilon, int maxIter, double *res) {
+double *create_frame(int sharpness, double centerRe, double centerIm, double epsilon, int maxIter, bool greyscale, double *res) {
   FILE*       outfile;                      // defined in stdio
   int         T, i, x, y;                   // array subscripts
   gdImagePtr  image;                        // a GD image object
   char        filename[80];
   int         black, palette[256];          // red, all possible shades of palette
-  HsvColor    col_hsv;
-  RgbColor    col_rgb;
 
   double reStart = centerRe - epsilon;
   double reEnd = centerRe + epsilon;
@@ -218,17 +245,7 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
 
   image = gdImageCreate(pngWidth, pngHeight);
 
-  black = gdImageColorAllocate(image, 0, 0, 0);
-
-  for (i=0; i<255; i++){
-    col_hsv.h = i;
-    col_hsv.s = 255;
-    col_hsv.v = (i == 255 ? 0 : 255);
-    col_rgb = HsvToRgb(col_hsv);
-    palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
-  }
-
-  palette[255] = gdImageColorAllocate(image, 0, 0, 0);
+  set_palette(image, palette, &black, greyscale);
 
   //Progress variables
   volatile int *d_data, *h_data;
@@ -240,7 +257,7 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
 
   // Calculate power tower convergence / divergence
   int num_blocks = (pngWidth*pngHeight+255)/256;
-  fillColor<<<num_blocks, 256>>>(N, pngHeight, pngWidth, d_color, reStart, reEnd, imStart, imEnd, maxIter, d_data);
+  fillColor<<<num_blocks, 256>>>(N, pngHeight, pngWidth, d_color, reStart, reEnd, imStart, imEnd, maxIter, d_data, greyscale);
   cudaEventRecord(stop);
 
   // Measure progress

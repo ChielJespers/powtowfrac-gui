@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.36.0 -->
+<!-- Generated with glade 3.38.2 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkWindow" id="MainWindow">
     <property name="name">MainWindow</property>
-    <property name="width_request">-1</property>
-    <property name="height_request">-1</property>
-    <property name="can_focus">False</property>
-    <property name="default_width">875</property>
-    <property name="default_height">950</property>
+    <property name="width-request">-1</property>
+    <property name="height-request">-1</property>
+    <property name="can-focus">False</property>
+    <property name="default-width">875</property>
+    <property name="default-height">950</property>
     <signal name="destroy" handler="on_MainWindow_destroy" swapped="no"/>
     <child>
       <object class="GtkFixed">
         <property name="visible">True</property>
-        <property name="can_focus">False</property>
+        <property name="can-focus">False</property>
         <child>
           <object class="GtkButton" id="exec-button">
-            <property name="width_request">50</property>
-            <property name="height_request">50</property>
+            <property name="width-request">50</property>
+            <property name="height-request">50</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
-            <property name="always_show_image">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
+            <property name="always-show-image">True</property>
             <signal name="clicked" handler="on_exec-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="exec-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-refresh</property>
                 <property name="icon_size">3</property>
               </object>
@@ -39,11 +39,11 @@
         </child>
         <child>
           <object class="GtkEntry" id="realpart">
-            <property name="width_request">100</property>
+            <property name="width-request">100</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="max_length">50</property>
-            <property name="input_purpose">number</property>
+            <property name="can-focus">True</property>
+            <property name="max-length">50</property>
+            <property name="input-purpose">number</property>
             <signal name="changed" handler="on_realpart_changed" swapped="no"/>
           </object>
           <packing>
@@ -53,11 +53,11 @@
         </child>
         <child>
           <object class="GtkEntry" id="imaginarypart">
-            <property name="width_request">100</property>
+            <property name="width-request">100</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="max_length">50</property>
-            <property name="input_purpose">number</property>
+            <property name="can-focus">True</property>
+            <property name="max-length">50</property>
+            <property name="input-purpose">number</property>
             <signal name="changed" handler="on_imaginarypart_changed" swapped="no"/>
           </object>
           <packing>
@@ -67,11 +67,11 @@
         </child>
         <child>
           <object class="GtkEntry" id="epsilon">
-            <property name="width_request">100</property>
+            <property name="width-request">100</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="max_length">50</property>
-            <property name="input_purpose">number</property>
+            <property name="can-focus">True</property>
+            <property name="max-length">50</property>
+            <property name="input-purpose">number</property>
             <signal name="changed" handler="on_epsilon_changed" swapped="no"/>
           </object>
           <packing>
@@ -82,7 +82,7 @@
         <child>
           <object class="GtkLabel" id="real-label">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">real part</property>
           </object>
           <packing>
@@ -93,7 +93,7 @@
         <child>
           <object class="GtkLabel" id="imaginary-label">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">imaginary part</property>
           </object>
           <packing>
@@ -104,7 +104,7 @@
         <child>
           <object class="GtkLabel" id="epsilon-label">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">epsilon</property>
           </object>
           <packing>
@@ -114,16 +114,16 @@
         </child>
         <child>
           <object class="GtkButton" id="zoomin-button">
-            <property name="width_request">50</property>
-            <property name="height_request">50</property>
+            <property name="width-request">50</property>
+            <property name="height-request">50</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_zoomin-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="zoomin-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-add</property>
                 <property name="icon_size">3</property>
               </object>
@@ -137,13 +137,13 @@
         <child>
           <object class="GtkButton" id="up-button">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_up-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="up-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-go-up</property>
               </object>
             </child>
@@ -156,13 +156,13 @@
         <child>
           <object class="GtkButton" id="down-button">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_down-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="down-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-go-down</property>
               </object>
             </child>
@@ -175,13 +175,13 @@
         <child>
           <object class="GtkButton" id="left-button">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_left-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="left-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-go-back</property>
               </object>
             </child>
@@ -194,13 +194,13 @@
         <child>
           <object class="GtkButton" id="right-button">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_right-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="right-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-go-forward</property>
               </object>
             </child>
@@ -213,7 +213,7 @@
         <child>
           <object class="GtkEntry" id="maxiter">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
           </object>
           <packing>
             <property name="x">520</property>
@@ -223,7 +223,7 @@
         <child>
           <object class="GtkLabel" id="maxiter-label">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">max. iterations</property>
           </object>
           <packing>
@@ -234,7 +234,7 @@
         <child>
           <object class="GtkEntry" id="sharpness">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can-focus">True</property>
           </object>
           <packing>
             <property name="x">520</property>
@@ -244,7 +244,7 @@
         <child>
           <object class="GtkLabel" id="sharpness-label">
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <property name="label" translatable="yes">sharpness</property>
           </object>
           <packing>
@@ -254,16 +254,16 @@
         </child>
         <child>
           <object class="GtkButton" id="zoomout-button">
-            <property name="width_request">50</property>
-            <property name="height_request">50</property>
+            <property name="width-request">50</property>
+            <property name="height-request">50</property>
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="receives_default">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">True</property>
             <signal name="clicked" handler="on_zoomout-button_clicked" swapped="no"/>
             <child>
               <object class="GtkImage" id="zoomout-image">
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="stock">gtk-remove</property>
                 <property name="icon_size">3</property>
               </object>
@@ -277,17 +277,17 @@
         <child>
           <object class="GtkEventBox" id="plot-container-box">
             <property name="name">plot-container-box</property>
-            <property name="width_request">750</property>
-            <property name="height_request">750</property>
+            <property name="width-request">750</property>
+            <property name="height-request">750</property>
             <property name="visible">True</property>
-            <property name="can_focus">False</property>
+            <property name="can-focus">False</property>
             <signal name="button-press-event" handler="on_plot-container-box_button_press_event" swapped="no"/>
             <child>
               <object class="GtkImage" id="plot">
-                <property name="width_request">750</property>
-                <property name="height_request">750</property>
+                <property name="width-request">750</property>
+                <property name="height-request">750</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can-focus">False</property>
                 <property name="pixbuf">output.png</property>
                 <property name="icon_size">3</property>
               </object>
@@ -298,10 +298,22 @@
             <property name="y">30</property>
           </packing>
         </child>
+        <child>
+          <object class="GtkCheckButton" id="greyscale">
+            <property name="label" translatable="yes">greyscale</property>
+            <property name="height-request">35</property>
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="receives-default">False</property>
+            <property name="draw-indicator">True</property>
+            <signal name="toggled" handler="on_greyscale-checkbox_toggled" swapped="no"/>
+          </object>
+          <packing>
+            <property name="x">175</property>
+            <property name="y">900</property>
+          </packing>
+        </child>
       </object>
-    </child>
-    <child type="titlebar">
-      <placeholder/>
     </child>
   </object>
 </interface>
