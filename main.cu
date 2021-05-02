@@ -22,7 +22,7 @@
 // Different coloring schemes are now applied by case distinction, needs to be become based in
 // More modular set-up
 #define CYCLE 1
-#define DISCERNLIMITS 0.0001
+#define DISCERNLIMITS 0.001
 
 __device__
 double slog(double in) {
@@ -119,7 +119,7 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
       cyclelength += 1;
     }
 
-    color[T] = toggleOverflow == 1 ? 255 : (cyclelength);
+    color[T] = toggleOverflow == 1 ? 255 : (cyclelength % 20);
   }
 
   if (!(threadIdx.x || threadIdx.y)){
