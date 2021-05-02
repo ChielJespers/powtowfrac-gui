@@ -22,7 +22,7 @@
 // Different coloring schemes are now applied by case distinction, needs to be become based in
 // More modular set-up
 #define CYCLE 1
-#define DISCERNLIMITS 0.001
+#define DISCERNLIMITS 0.0001
 
 __device__
 double slog(double in) {
@@ -51,7 +51,7 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
 
   int toggleOverflow = 0;                                          
   int numberOfIterations = 0;  
-  int cyclelength = 2;
+  int cyclelength = 1;
 
   if (re == 0 && im == 0){
     color[T] = maxIter;
@@ -103,7 +103,9 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
     nextRe = exp(powerRe) * cos(powerIm);
     nextIm = exp(powerRe) * sin(powerIm);
 
-    while (abs(nextRe - lastItRe) >= DISCERNLIMITS && abs(nextIm - lastItIm) >= DISCERNLIMITS && toggleOverflow == 0) {
+    cyclelength = 1;
+
+    while (abs(nextRe - lastItRe) + abs(nextIm - lastItIm) > DISCERNLIMITS && toggleOverflow == 0 && cyclelength < 100) {
       powerRe = (nextRe * logRe - nextIm * logIm);
       powerIm = (nextRe * logIm + nextIm * logRe);
   
@@ -117,7 +119,7 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
       cyclelength += 1;
     }
 
-    color[T] = toggleOverflow ? 255 : cyclelength % 20;
+    color[T] = toggleOverflow == 1 ? 255 : (cyclelength);
   }
 
   if (!(threadIdx.x || threadIdx.y)){
@@ -142,6 +144,8 @@ typedef struct HsvColor
 
 RgbColor cycle_coloring(int cycle) {
   switch(cycle) {
+    case 0:
+      return { 160, 160, 160 };
     case 1:
       return { 255, 255, 255 }; // white
     case 2:
@@ -181,7 +185,7 @@ RgbColor cycle_coloring(int cycle) {
     case 19:
       return { 229, 204, 255 }; // apricot
     case 20:
-      return { 160, 160, 160 }; // lightgray
+      return { 160, 160, 160 };
     default:
       return { 127, 127, 127 }; // gray
   }
@@ -270,6 +274,7 @@ double linear_interpolation(double color1, double color2, double t) {
 }
 
 char*   filenameF =   "preview.png";
+char*   logFileF   =  "log.txt";
 
 void set_palette(gdImagePtr image, int *palette, int *black, bool greyscale) {
   HsvColor    col_hsv;
@@ -312,11 +317,11 @@ void set_palette(gdImagePtr image, int *palette, int *black, bool greyscale) {
 
 extern "C" {
 double *create_frame(int sharpness, double centerRe, double centerIm, double epsilon, int maxIter, bool greyscale, double *res) {
-  FILE*       outfile;                      // defined in stdio
+  FILE        *outfile, *logfile;           // defined in stdio
   int         T, i, x, y;                   // array subscripts
   gdImagePtr  image;                        // a GD image object
   char        filename[80];
-  int         black, palette[256];          // red, all possible shades of palette
+  int         black, palette[256];          // black, all possible shades of palette
 
   double reStart = centerRe - epsilon;
   double reEnd = centerRe + epsilon;
@@ -340,7 +345,6 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   cudaMalloc(&d_color, N*sizeof(double));
 
   image = gdImageCreate(pngWidth, pngHeight);
-
 
   set_palette(image, palette, &black, greyscale);
 
@@ -405,6 +409,8 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
     }
   }
 
+  logfile = fopen(logFileF, "w");
+
   // Now create the result array consisting of the actual colors
   for (int T = 0; T < N; T++) {
     if (!CYCLE) {
@@ -416,7 +422,10 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
     else {
       x = T % pngHeight;
       y = T / pngHeight;
-      gdImageSetPixel(image, x, y, color[T] == 255 ? black : color[T]);
+      if (color[T] < 24 && color[T] != 3) {
+        fprintf(logfile, "x = %d, y = %d, color[%d] = %f\n", x, y, T, color[T]);
+      }
+      gdImageSetPixel(image, x, y, color[T] == 255 ? black : (int) color[T] + 1);
     }
   }
 
@@ -428,6 +437,7 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
   outfile = fopen(filenameF, "wb");
   gdImagePng(image, outfile);
   fclose(outfile);
+  fclose(logfile);
 
   return res;
 }
