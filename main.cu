@@ -19,6 +19,11 @@
 #define BASE 1
 #define PI 3.14159265359
 
+// Different coloring schemes are now applied by case distinction, needs to be become based in
+// More modular set-up
+#define CYCLE 1
+#define DISCERNLIMITS 0.001
+
 __device__
 double slog(double in) {
   double result = 0;
@@ -42,10 +47,12 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
   double re = reStart + ((double) x / W * (reEnd - reStart));
   double im = imEnd - ((double) y / H * (imEnd - imStart));
 
-  double nextRe, nextIm, logRe, logIm, powerRe, powerIm;
+  double nextRe, nextIm, logRe, logIm, powerRe, powerIm, lastItRe, lastItIm;
 
   int toggleOverflow = 0;                                          
-  int numberOfIterations = 0;                                      
+  int numberOfIterations = 0;  
+  int cyclelength = 2;
+
   if (re == 0 && im == 0){
     color[T] = maxIter;
   }
@@ -59,10 +66,6 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
 
     nextRe = exp(powerRe) * cos(powerIm);
     nextIm = exp(powerRe) * sin(powerIm);
-
-    // if (powerRe > 700) {
-    //   toggleOverflow = 1;
-    // }
 
     while (numberOfIterations < maxIter && toggleOverflow == 0)
     {
@@ -80,10 +83,43 @@ void fillColor(int n, int H, int W, double* color, double reStart, double reEnd,
     }
   }
 
-  double smoothening_factor = greyscale ? 0 : 1 - slog(powerRe);
-  double it = numberOfIterations == maxIter ? maxIter : numberOfIterations + smoothening_factor;
+  if (!CYCLE) {
+    double smoothening_factor = greyscale ? 0 : 1 - slog(powerRe);
+    double it = numberOfIterations == maxIter ? maxIter : numberOfIterations + smoothening_factor;
+  
+    color[T] = it;
+  }
+  else {
+    lastItRe = nextRe;
+    lastItIm = nextIm;
 
-  color[T] = it;
+    powerRe = (nextRe * logRe - nextIm * logIm);
+    powerIm = (nextRe * logIm + nextIm * logRe);
+
+    if (powerRe > 700) {
+        toggleOverflow = 1;
+    }
+
+    nextRe = exp(powerRe) * cos(powerIm);
+    nextIm = exp(powerRe) * sin(powerIm);
+
+    while (abs(nextRe - lastItRe) >= DISCERNLIMITS && abs(nextIm - lastItIm) >= DISCERNLIMITS && toggleOverflow == 0) {
+      powerRe = (nextRe * logRe - nextIm * logIm);
+      powerIm = (nextRe * logIm + nextIm * logRe);
+  
+      if (powerRe > 700) {
+          toggleOverflow = 1;
+      }
+  
+      nextRe = exp(powerRe) * cos(powerIm);
+      nextIm = exp(powerRe) * sin(powerIm);
+
+      cyclelength += 1;
+    }
+
+    color[T] = toggleOverflow ? 255 : cyclelength % 20;
+  }
+
   if (!(threadIdx.x || threadIdx.y)){
     atomicAdd((int *)progress, 1);
     __threadfence_system();
@@ -103,6 +139,53 @@ typedef struct HsvColor
   unsigned char s;
   unsigned char v;
 } HsvColor;
+
+RgbColor cycle_coloring(int cycle) {
+  switch(cycle) {
+    case 1:
+      return { 255, 255, 255 }; // white
+    case 2:
+      return { 255, 0, 0 }; // red
+    case 3:
+      return { 0, 0, 255 }; // blue
+    case 4:
+      return { 255, 255, 0 }; // yellow
+    case 5:
+      return { 0, 255, 0 }; // green
+    case 6:
+      return { 255, 128, 0 }; // orange
+    case 7:
+      return { 127, 0, 255 }; // purple
+    case 8:
+      return { 255, 0, 127 }; // pink
+    case 9:
+      return { 0, 255, 255 }; // light blue
+    case 10:
+      return { 255, 0, 255 }; // fuchsia
+    case 11:
+      return { 76, 153, 0 }; // snotgroen
+    case 12:
+      return { 153, 76, 0 }; // bruin
+    case 13:
+      return { 0, 153, 153 }; // turkoois
+    case 14:
+      return { 170, 110, 40 }; // brown
+    case 15:
+      return { 255, 250, 200 }; // beige
+    case 16:
+      return { 128, 0, 0 }; // maroon
+    case 17:
+      return { 178, 255, 195 }; // mint
+    case 18:
+      return { 128, 128, 0 }; // olive
+    case 19:
+      return { 229, 204, 255 }; // apricot
+    case 20:
+      return { 160, 160, 160 }; // lightgray
+    default:
+      return { 127, 127, 127 }; // gray
+  }
+}
 
 RgbColor HsvToRgb(HsvColor hsv)
 {
@@ -191,28 +274,39 @@ char*   filenameF =   "preview.png";
 void set_palette(gdImagePtr image, int *palette, int *black, bool greyscale) {
   HsvColor    col_hsv;
   RgbColor    col_rgb;
+  if (!CYCLE) {
+    if (!greyscale) {
+      *black = gdImageColorAllocate(image, 0, 0, 0);
   
-  if (!greyscale) {
-    *black = gdImageColorAllocate(image, 0, 0, 0);
-
-    for (int i=0; i<255; i++){
-      col_hsv.h = i;
-      col_hsv.s = 255;
-      col_hsv.v = (i == 255 ? 0 : 255);
-      col_rgb = HsvToRgb(col_hsv);
-      palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
+      for (int i=0; i<255; i++){
+        col_hsv.h = i;
+        col_hsv.s = 255;
+        col_hsv.v = (i == 255 ? 0 : 255);
+        col_rgb = HsvToRgb(col_hsv);
+        palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
+      }
+    
+      palette[255] = gdImageColorAllocate(image, 0, 0, 0);
     }
+    else {
+      *black = gdImageColorAllocate(image, 255, 255, 255);
   
-    palette[255] = gdImageColorAllocate(image, 0, 0, 0);
+      for (int i=0; i<255; i++){
+        palette[i] = gdImageColorAllocate(image, 0, 0, 0);
+      }
+    
+      palette[255] = gdImageColorAllocate(image, 255, 255, 255);
+    }
   }
   else {
-    *black = gdImageColorAllocate(image, 255, 255, 255);
+    *black = gdImageColorAllocate(image, 0, 0, 0);
 
-    for (int i=0; i<255; i++){
-      palette[i] = gdImageColorAllocate(image, 0, 0, 0);
+    for (int i = 0; i < 255; i++) {
+      col_rgb = cycle_coloring(i);
+      palette[i] = gdImageColorAllocate(image, col_rgb.r, col_rgb.g, col_rgb.b);
     }
-  
-    palette[255] = gdImageColorAllocate(image, 255, 255, 255);
+
+    palette[255] = gdImageColorAllocate(image, 0, 0, 0);
   }
 }
 
@@ -284,36 +378,47 @@ double *create_frame(int sharpness, double centerRe, double centerIm, double eps
 
   // Create lookup table of hues
   int *hues = (int*) calloc((maxIter + 1), sizeof(int));
-  for (int T = 0; T < N; T++) {
-    if (color[T] < maxIter) {
-      int index = (int) color[T];
-      hues[(int) color[T]]++;
+
+  if (!CYCLE) {
+    for (int T = 0; T < N; T++) {
+      if (color[T] < maxIter) {
+        int index = (int) color[T];
+        hues[(int) color[T]]++;
+      }
     }
-  }
-
-  int total = 0;
-  for (int i = 0; i < maxIter; i++) {
-    total += hues[i];
-  }
-
-  hues[0] *= 255;
-  for (int i = 1; i < maxIter; i++) {
-    hues[i] = hues[i - 1] + 255 * hues[i];
-  }
-  hues[maxIter] = -1;
-
-  if (total > 0) {
+  
+    int total = 0;
     for (int i = 0; i < maxIter; i++) {
-      hues[i] /= total;
+      total += hues[i];
+    }
+  
+    hues[0] *= 255;
+    for (int i = 1; i < maxIter; i++) {
+      hues[i] = hues[i - 1] + 255 * hues[i];
+    }
+    hues[maxIter] = -1;
+  
+    if (total > 0) {
+      for (int i = 0; i < maxIter; i++) {
+        hues[i] /= total;
+      }
     }
   }
 
   // Now create the result array consisting of the actual colors
   for (int T = 0; T < N; T++) {
-    res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
-    x = T % pngHeight;
-    y = T / pngHeight;
-    gdImageSetPixel(image, x, y, res[T] > 0 ? res[T] : black);  }
+    if (!CYCLE) {
+      res[T] = linear_interpolation(hues[(int) color[T]], hues[(int) (color[T] + .5)], color[T] - (int) color[T]);
+      x = T % pngHeight;
+      y = T / pngHeight;
+      gdImageSetPixel(image, x, y, res[T] > 0 ? res[T] : black);
+    }
+    else {
+      x = T % pngHeight;
+      y = T / pngHeight;
+      gdImageSetPixel(image, x, y, color[T] == 255 ? black : color[T]);
+    }
+  }
 
   // Free 2D array
   cudaFree(d_color);
